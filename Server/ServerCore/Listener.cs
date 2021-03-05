@@ -12,18 +12,21 @@ namespace ServerCore
 
         private Func<Session> _sessionFactory;
 
-        public void Init(IPEndPoint endPoint, Func<Session> sessionFactory)
+        public void Init(IPEndPoint endPoint, Func<Session> sessionFactory, int register = 10, int backLog = 10)
         {
             _listenSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             _sessionFactory += sessionFactory;
             _listenSocket.Bind(endPoint);
 
             // backlog : 최대 대기수
-            _listenSocket.Listen(10);
+            _listenSocket.Listen(backLog);
 
-            var args = new SocketAsyncEventArgs();
-            args.Completed += OnAcceptCompleted;
-            RegisterAccept(args);
+            for (int i = 0; i < register; i++)
+            {
+                var args = new SocketAsyncEventArgs();
+                args.Completed += OnAcceptCompleted;
+                RegisterAccept(args);
+            }
         }
 
         private void RegisterAccept(SocketAsyncEventArgs args)

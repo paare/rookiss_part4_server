@@ -6,18 +6,13 @@ class PacketManager
 {
     #region Singleton
 
-    private static PacketManager _instance;
+    private static PacketManager _instance = new PacketManager();
 
-    public static PacketManager Instance
+    public static PacketManager Instance => _instance;
+
+    public PacketManager()
     {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = new PacketManager();
-            }
-            return _instance;
-        }
+        Register();
     }
 
     #endregion
@@ -30,8 +25,8 @@ class PacketManager
 
     public void Register()
     {
-        _onRecv.Add((ushort) PacketId.C2S_PlayerInfoReq, MakePacket<C2S_PlayerInfoReq>);
-        _handler.Add((ushort) PacketId.C2S_PlayerInfoReq, PacketHandler.C2S_PlayerInfoReqHandler);
+        _onRecv.Add((ushort) PacketId.C2S_Chat, MakePacket<C2S_Chat>);
+        _handler.Add((ushort) PacketId.C2S_Chat, PacketHandler.C2S_ChatHandler);
 
     }
 

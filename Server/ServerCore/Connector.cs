@@ -9,16 +9,20 @@ namespace ServerCore
     public class Connector
     {
         private Func<Session> _sessionFactory;
-        public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory)
-        {
-            Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            _sessionFactory = sessionFactory;
-            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            args.Completed += OnConnectCompleted;
-            args.RemoteEndPoint = endPoint;
-            args.UserToken = socket;
 
-            RegisterConnect(args);
+        public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory, int count = 1)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                _sessionFactory = sessionFactory;
+                SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+                args.Completed += OnConnectCompleted;
+                args.RemoteEndPoint = endPoint;
+                args.UserToken = socket;
+
+                RegisterConnect(args);
+            }
         }
 
         public void RegisterConnect(SocketAsyncEventArgs args)

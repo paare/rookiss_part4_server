@@ -16,13 +16,14 @@ namespace DummyClient
             IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
 
             Connector connector = new Connector();
-            connector.Connect(endPoint, () => new ServerSession());
+            connector.Connect(endPoint, () => SessionManager.Instance.Generate(), 10);
 
             while (true)
             {
                 Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
+                    SessionManager.Instance.SendForeach();
                 }
                 catch (Exception e)
                 {
@@ -30,7 +31,7 @@ namespace DummyClient
                     throw;
                 }
 
-                Thread.Sleep(100);
+                Thread.Sleep(250);
             }
         }
     }

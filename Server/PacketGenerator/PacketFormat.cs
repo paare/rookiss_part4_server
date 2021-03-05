@@ -16,18 +16,13 @@ class PacketManager
 {{
     #region Singleton
 
-    private static PacketManager _instance;
+    private static PacketManager _instance = new PacketManager();
 
-    public static PacketManager Instance
+    public static PacketManager Instance => _instance;
+
+    public PacketManager()
     {{
-        get
-        {{
-            if (_instance == null)
-            {{
-                _instance = new PacketManager();
-            }}
-            return _instance;
-        }}
+        Register();
     }}
 
     #endregion
