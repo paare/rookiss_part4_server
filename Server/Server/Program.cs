@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using System.Threading;
 using ServerCore;
 
 namespace Server
@@ -19,6 +20,8 @@ namespace Server
             listener.Init(endPoint, () => SessionManager.Instance.Generate());
             while (true)
             {
+                Room.Push(() => Room.Flush());
+                Thread.Sleep(250);
             }
         }
     }
