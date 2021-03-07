@@ -4,14 +4,24 @@ using ServerCore;
 
 class PacketHandler
 {
-    public static void C2S_ChatHandler(PacketSession session, IPacket packet)
+    public static void C2S_LeaveGameHandler(PacketSession session, IPacket packet)
     {
-        C2S_Chat chatPacket = packet as C2S_Chat;
         ClientSession clientSession = session as ClientSession;
         if (clientSession.Room == null)
             return;
 
         GameRoom room = clientSession.Room;
-        room.Push(() => room.BroadCast(clientSession, chatPacket.chat));
+        room.Push(() => room.Leave(clientSession));
+    }
+
+    public static void C2S_MoveHandler(PacketSession session, IPacket packet)
+    {
+        C2S_Move movePacket = packet as C2S_Move;
+        ClientSession clientSession = session as ClientSession;
+        if (clientSession.Room == null)
+            return;
+        
+        GameRoom room = clientSession.Room;
+        room.Push(() => room.Move(clientSession, movePacket));
     }
 }

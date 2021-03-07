@@ -2,56 +2,61 @@ using ServerCore;
 using System;
 using System.Collections.Generic;
 
-class PacketManager
+public class PacketManager
 {
-    #region Singleton
+	#region Singleton
+	static PacketManager _instance = new PacketManager();
+	public static PacketManager Instance { get { return _instance; } }
+	#endregion
 
-    private static PacketManager _instance = new PacketManager();
+	PacketManager()
+	{
+		Register();
+	}
 
-    public static PacketManager Instance => _instance;
+	
+    private Dictionary<ushort, Func<PacketSession, ArraySegment<byte>, IPacket>> _makeFunc = new Dictionary<ushort, Func<PacketSession, ArraySegment<byte>, IPacket>>();
+	Dictionary<ushort, Action<PacketSession, IPacket>> _handler = new Dictionary<ushort, Action<PacketSession, IPacket>>();
+		
+	public void Register()
+	{
+		_makeFunc.Add((ushort)PacketID.C2S_LeaveGame, MakePacket<C2S_LeaveGame>);
+		_handler.Add((ushort)PacketID.C2S_LeaveGame, PacketHandler.C2S_LeaveGameHandler);
+		_makeFunc.Add((ushort)PacketID.C2S_Move, MakePacket<C2S_Move>);
+		_handler.Add((ushort)PacketID.C2S_Move, PacketHandler.C2S_MoveHandler);
 
-    public PacketManager()
-    {
-        Register();
-    }
+	}
 
-    #endregion
+	public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer, Action<PacketSession, IPacket> onRecvCallback = null)
+	{
+		ushort count = 0;
 
-    private Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>> _onRecv =
-        new Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>>();
+		ushort size = BitConverter.ToUInt16(buffer.Array, buffer.Offset);
+		count += 2;
+		ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
+		count += 2;
 
-    private Dictionary<ushort, Action<PacketSession, IPacket>> _handler =
-        new Dictionary<ushort, Action<PacketSession, IPacket>>();
-
-    public void Register()
-    {
-        _onRecv.Add((ushort) PacketId.C2S_Chat, MakePacket<C2S_Chat>);
-        _handler.Add((ushort) PacketId.C2S_Chat, PacketHandler.C2S_ChatHandler);
-
-    }
-
-    private void MakePacket<T>(PacketSession session, ArraySegment<byte> buffer) where T : IPacket, new()
-    {
-        T pkt = new T();
-        pkt.Read(buffer);
-
-        if (_handler.TryGetValue(pkt.Protocol, out var action))
+        if (_makeFunc.TryGetValue(id, out var func))
         {
-            action?.Invoke(session, pkt);
-        }
-    }
+            IPacket packet = func.Invoke(session, buffer);
 
-    public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer)
+            if (onRecvCallback != null)
+                onRecvCallback.Invoke(session, packet);
+            else
+                HandlePacket(session, packet);
+        }
+	}
+
+	private T MakePacket<T>(PacketSession session, ArraySegment<byte> buffer) where T : IPacket, new()
+	{
+		T pkt = new T();
+		pkt.Read(buffer);
+		return pkt;
+	}
+
+    public void HandlePacket(PacketSession session, IPacket packet)
     {
-        ushort count = 0;
-        ushort size = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
-        count += 2;
-        ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
-        count += 2;
-
-        if (_onRecv.TryGetValue(id, out var action))
-        {
-            action?.Invoke(session, buffer);
-        }
+        if (_handler.TryGetValue(packet.Protocol, out var action))
+            action.Invoke(session, packet);
     }
 }

@@ -10,6 +10,12 @@ namespace Server
         private static Listener listener = new Listener();
         public static GameRoom Room = new GameRoom();
 
+        private static void FlushRoom()
+        {
+            Room.Push(() => Room.Flush());
+            JobTimer.Instance.Push(FlushRoom, 250);
+        }
+
         static void Main(string[] args)
         {
             string host = Dns.GetHostName();
@@ -18,10 +24,12 @@ namespace Server
             IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
 
             listener.Init(endPoint, () => SessionManager.Instance.Generate());
+
+            // FlushRoom();
+            JobTimer.Instance.Push(FlushRoom);
             while (true)
             {
-                Room.Push(() => Room.Flush());
-                Thread.Sleep(250);
+                JobTimer.Instance.Flush();
             }
         }
     }

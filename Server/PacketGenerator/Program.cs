@@ -2,7 +2,7 @@
 using System.IO;
 using System.Xml;
 
-namespace PackeetGenerator
+namespace PacketGenerator
 {
     class Program
     {

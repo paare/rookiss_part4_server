@@ -11,6 +11,7 @@ namespace DummyClient
 
         private List<ServerSession> _sessions = new List<ServerSession>();
         private object _lock = new object();
+        private Random _rand = new Random();
 
         public void SendForeach()
         {
@@ -18,11 +19,12 @@ namespace DummyClient
             {
                 foreach (var session in _sessions)
                 {
-                    C2S_Chat chatPacket = new C2S_Chat();
-                    chatPacket.chat = $"Hello Server !";
-                    ArraySegment<byte> segment = chatPacket.Write();
+                    C2S_Move movePacket = new C2S_Move();
+                    movePacket.posX = _rand.Next(-50, 50);
+                    movePacket.posY = 0;
+                    movePacket.posZ = _rand.Next(-50, 50);
 
-                    session.Send(segment);
+                    session.Send(movePacket.Write());
                 }
             }
         }
